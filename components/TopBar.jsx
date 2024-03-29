@@ -4,11 +4,10 @@ import { Logout } from '@mui/icons-material';
 import { signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 const TopBar = () => {
     const pathname = usePathname();
-
     const handleLogout = async () => {
         signOut({callbackUrl: '/'});
     }
