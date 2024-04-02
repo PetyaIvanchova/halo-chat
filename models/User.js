@@ -19,7 +19,7 @@ const UserSchema = new mongoose.Schema({
         default: ""
     },
     chats: {
-        type: [{type: mongoose.Schema.Types.ObjectId, ref: "CHat"}],
+        type: [{type: mongoose.Schema.Types.ObjectId, ref: "Chat"}],
         default: []
     }
 });

@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import Loader from './Loader';
 import ChatBox from './ChatBox';
 
-const ChatList = () => {
+const ChatList = ({currentChatId}) => {
 
     const {data: sessions} = useSession();
     const currentUser = sessions?.user;
@@ -44,7 +44,7 @@ const ChatList = () => {
 
             <div className='chats'>
                 {chats?.map((chat, index) => (
-                    <ChatBox chat={chat} index={index} currentUser={currentUser}/>
+                    <ChatBox chat={chat} index={index} currentUser={currentUser} currentChatId={currentChatId}/>
                 ))}
             </div>
         </div>
