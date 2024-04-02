@@ -24,7 +24,7 @@ const ChatList = ({currentChatId}) => {
             //console.log(data);
 
             setChats(data);
-            console.log(chats);
+            //console.log(chats);
             setLoading(false);
         } catch (error) {
             console.log(error);

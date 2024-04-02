@@ -5,6 +5,8 @@ import Loader from './Loader';
 import Link from 'next/link';
 import { AddPhotoAlternate } from '@mui/icons-material';
 import { useSession } from 'next-auth/react';
+import { CldUploadButton } from 'next-cloudinary';
+import MessageBox from './MessageBox';
 
 const ChatDetails = ({ chatId }) => {
 
@@ -38,6 +40,48 @@ const ChatDetails = ({ chatId }) => {
         if (currentUser && chatId) getChatDetails();
     }, [currentUser, chatId])
 
+    const sendText = async () => {
+        try {
+            const res = await fetch('/api/messages', {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    chatId,
+                    currentUserId: currentUser._id,
+                    text
+                })
+            })
+
+            if(res.ok){
+                setText("");
+            }
+            
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const sendPhoto = async (result) => {
+        try{
+            const res = await fetch('/api/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type' : 'application/json'
+                },
+                body: JSON.stringify({
+                    chatId,
+                    currentUserId: currentUser._id,
+                    photo: result?.info?.secure_url
+                })
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+
     return loading ? <Loader /> : (
         <div className="chat-details">
             <div className='chat-header'>
@@ -70,14 +114,23 @@ const ChatDetails = ({ chatId }) => {
                 )}
             </div>
 
-            <div className="chat-body"></div>
+            <div className="chat-body">
+                {chat?.messages?.map((message, index) => (
+                    <MessageBox key={index} message={message} currentUser={currentUser}/>
+                ))}
+            </div>
 
             <div className="send-message">
                 <div className="prepare-message">
-                    <AddPhotoAlternate sx={{ fontSize: "35px", color: "#737373", "&:hover": { color: "red" } }} />
-                    <input type="text" placeholder="Write a message..." value={text} onChange={(e) => setText(e.target.value)} required />
+                    <CldUploadButton
+                    options={{maxFiles: 1}}
+                    onSuccess={sendPhoto}
+                    uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_PRESET}>
+                        <AddPhotoAlternate sx={{ fontSize: "35px", color: "#737373", "&:hover": { color: "red" } }} />
+                    </CldUploadButton>
+                    <input type="text" className="input-field" placeholder="Write a message..." value={text} onChange={(e) => setText(e.target.value)} required />
                 </div>
-                <div>
+                <div onClick={sendText}>
                     <img src="/assets/send.jpg" alt="send" className="send-icon" />
                 </div>
             </div>
