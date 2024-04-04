@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import React, { useEffect, useState } from 'react';
 import Loader from './Loader';
 import ChatBox from './ChatBox';
+import { pusherClient } from '@lib/pusher';
 
 const ChatList = ({currentChatId}) => {
 
@@ -38,13 +39,43 @@ const ChatList = ({currentChatId}) => {
         }
     },[currentUser, search])
 
+    useEffect(() => {
+        if(currentUser){
+            pusherClient.subscribe(currentUser._id);
+
+            const handleChatUpdate = (updatedChat) => {
+                setChats((allChats) => allChats.map((chat) => {
+                    if(chat._id === updatedChat.id){
+                        return {...chat, messages: updatedChat.messages}
+                    } else {
+                        return chat;
+                    }
+                }))
+            }
+
+            const handleNewChat = (newChat) => {
+               // console.log(newChat);
+                setChats((allChats)=> [...allChats, newChat]);
+            }
+
+            pusherClient.bind("update-chat", handleChatUpdate);
+            pusherClient.bind("new-chat", handleNewChat);
+
+            return () => {
+                pusherClient.unsubscribe(currentUser._id);
+                pusherClient.unbind("update-chat", handleChatUpdate);
+                pusherClient.unbind("new-chat", handleNewChat)
+            }
+        }
+    }, [currentUser])
+
     return loading ? <Loader/> : (
         <div className='chat-list'>
             <input placeholder='Search chat...' className='input-search' value={search} onChange={(e)=>setSearch(e.target.value)}/>
 
             <div className='chats'>
                 {chats?.map((chat, index) => (
-                    <ChatBox chat={chat} index={index} currentUser={currentUser} currentChatId={currentChatId}/>
+                    <ChatBox chat={chat} key={index} currentUser={currentUser} currentChatId={currentChatId}/>
                 ))}
             </div>
         </div>

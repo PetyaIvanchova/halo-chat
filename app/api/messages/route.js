@@ -1,4 +1,6 @@
+import { pusherServer } from "@lib/pusher";
 import Chat from "@models/Chat";
+import User from "@models/User";
 import Message from "@models/Message";
 import { connectToDB } from "@mongodb"
 
@@ -10,9 +12,11 @@ export const POST = async (req) => {
 
         const {chatId, currentUserId, text, photo} = body;
 
+        const currentUser = await User.findById(currentUserId);
+
         const newMessage = await Message.create({
             chat: chatId,
-            sender: currentUserId,
+            sender: currentUser,
             text,
             photo,
             seenBy: currentUserId
@@ -26,11 +30,27 @@ export const POST = async (req) => {
         ).populate({
             path: "messages",
             model: Message,
-            populate: {path: "sender seenBy", model: "User"}
+            populate: {path: "sender seenBy", model: User}
         }).populate({
             path: "members",
-            model: 'User'
+            model: User
         }).exec();
+
+        /*Trigger a Pusher event for a specific chat about the new message*/
+        await pusherServer.trigger(chatId, "new-message", newMessage);
+
+        /*Trigger a Pusher event for each member of the chat about the chat update with the latest message*/
+        const lastMessage = updatedChat.messages[updatedChat.messages.length -1];
+
+        updatedChat.members.forEach(async (member) => {
+            try{
+                await pusherServer.trigger(member._id.toString(), "update-chat",
+                {id: chatId,
+                messages: [lastMessage]})
+            } catch (error){
+                console.log("Failed to trigger update-chat event");
+            }
+        })
 
         return new Response(JSON.stringify(newMessage), {status: 200})
     } catch (error){

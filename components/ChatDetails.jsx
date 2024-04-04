@@ -1,12 +1,13 @@
 'use client'
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Loader from './Loader';
 import Link from 'next/link';
 import { AddPhotoAlternate } from '@mui/icons-material';
 import { useSession } from 'next-auth/react';
 import { CldUploadButton } from 'next-cloudinary';
 import MessageBox from './MessageBox';
+import { pusherClient } from '@lib/pusher';
 
 const ChatDetails = ({ chatId }) => {
 
@@ -81,6 +82,36 @@ const ChatDetails = ({ chatId }) => {
         }
     }
 
+    useEffect(()=>{
+        pusherClient.subscribe(chatId);
+
+        const handleMessage = async (newMessage) =>{
+            setChat((prevChat)=>{
+                return {
+                    ...prevChat,
+                    messages: [...prevChat.messages, newMessage]
+                }
+            }); 
+        }
+
+        pusherClient.bind("new-message", handleMessage)
+
+        return () => {
+            pusherClient.unsubscribe(chatId);
+            pusherClient.unbind("new-message", handleMessage);
+        }
+
+    },[chatId]);
+
+    /*Scrolling down to the bottom when having the new message */
+    const bottomRef = useRef(null);
+
+    useEffect(()=>{
+        bottomRef.current?.scrollIntoView({
+            behavior: "smooth"
+        });
+    }, [chat?.messages]);
+
 
     return loading ? <Loader /> : (
         <div className="chat-details">
@@ -118,6 +149,7 @@ const ChatDetails = ({ chatId }) => {
                 {chat?.messages?.map((message, index) => (
                     <MessageBox key={index} message={message} currentUser={currentUser}/>
                 ))}
+                <div ref={bottomRef} />
             </div>
 
             <div className="send-message">
