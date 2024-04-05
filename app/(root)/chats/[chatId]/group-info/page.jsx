@@ -93,7 +93,7 @@ const GroupInfo = () => {
                 <div className="flex items-center justify-between">
                     <img src={watch('groupPhoto') || '/assets/group.png'}
                         alt='profile' className="w-40 h-40 rounded-full" />
-                    <CldUploadButton options={{ maxFiles: 1 }} onSuccess={uploadPhoto} uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_PRESET}>
+                    <CldUploadButton options={{ maxFiles: 1 }} onSuccess={uploadPhoto} uploadPreset="ouv0v7ov">
                         <p className="text-body-bold">Upload new photo</p>
                     </CldUploadButton>
                 </div>
