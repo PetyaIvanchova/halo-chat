@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
 const TopBar = () => {
+    
     const pathname = usePathname();
     const handleLogout = async () => {
         signOut({callbackUrl: '/'});
