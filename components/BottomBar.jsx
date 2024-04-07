@@ -12,7 +12,7 @@ const BottomBar = () => {
         signOut({ callbackUrl: '/' });
     }
 
-    const { data: session } = useSession();
+    const {data: session} = useSession();
     const user = session?.user;
 
     return (
